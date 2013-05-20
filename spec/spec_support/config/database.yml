@@ -1,0 +1,3 @@
+test:
+  :adapter: sqlite3
+  :database: datatables_crud.sqlite3.db

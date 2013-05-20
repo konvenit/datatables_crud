@@ -1,0 +1,12 @@
+#person
+  %p
+    Jmeno:
+    = @person.first_name
+  %p
+    Prijmeni:
+    = @person.last_name
+  %p
+    Datum narozeni:
+    = @person.date_of_birth
+
+= link_to 'Zpet na seznam', people_path

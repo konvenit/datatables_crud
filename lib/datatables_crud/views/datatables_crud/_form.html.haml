@@ -1,0 +1,7 @@
+%div{ id: controller_name.singularize }
+  %p
+    = form_for instance_variable_get("@#{controller_name.singularize}") do |f|
+      = render partial: 'form_fields', locals: { :f => f }
+      %p
+        = submit_tag 'ulozit', class: 'btn btn-primary'
+        = link_to 'Zpet na seznam', send("#{controller_name}_path"), class: 'btn'

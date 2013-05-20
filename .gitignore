@@ -1,0 +1,5 @@
+Gemfile.lock
+tmp/*
+log
+.idea
+spec/spec_support/*.db
