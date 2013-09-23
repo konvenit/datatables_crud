@@ -9,4 +9,4 @@
   %tbody
 
 %p.actions
-  = link_to t('.new', default: t('helpers.links.new')), send("new_#{controller_name.singularize}_path"), class: 'btn btn-primary'
+  = link_to t('.new', default: t('helpers.links.new')), send("new_#{path_with_parent_objects(controller_name.singularize)}_path", @project), class: 'btn btn-primary'

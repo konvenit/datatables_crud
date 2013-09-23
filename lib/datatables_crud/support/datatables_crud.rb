@@ -3,11 +3,37 @@ module DatatablesCRUD
     def crud_actions(actions)
       actions = [:index, :show, :new, :create, :edit, :update, :destroy] if actions == :all
       before_filter :load_resource, :only => [:show, :edit, :update, :destroy].select { |action| actions.include?(action) }
+
+      define_method(:load_parent_objects) do
+        parent_objects.each do |clazz|
+          obj_name = clazz.name.downcase
+          instance_variable_set("@#{obj_name}", clazz.find(params["#{obj_name}_id"]))
+        end
+      end
+
+      before_filter :load_parent_objects
+
       actions.each { |action| send("define_#{action}") }
 
       if actions.present?
         prepend_view_path(File.dirname(__FILE__) + "/../views")
       end
+
+      @@parent_objects = []
+      define_method(:parent_objects) do
+        @@parent_objects || []
+      end
+
+      define_method(:path_with_parent_objects) do |obj_name|
+        (parent_objects.map { |po| po.name.downcase } + [obj_name.downcase]).join('_')
+      end
+
+      helper_method :parent_objects
+      helper_method :path_with_parent_objects
+    end
+
+    def parent_objects(objects)
+      @@parent_objects = objects
     end
 
     def define_index
