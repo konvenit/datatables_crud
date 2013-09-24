@@ -1,7 +1,10 @@
 %div{ id: controller_name.singularize }
   %p
-    = form_for instance_variable_get("@#{controller_name.singularize}") do |f|
+    = twitter_bootstrap_form_for instance_variable_get("@#{controller_name.singularize}"), url: %w(new create).include?(params[:action]) ? index_path : show_path do |f|
+      - parent_objects.each do |obj|
+        = f.hidden_field :"#{obj.name.singularize.downcase}_id"
+
       = render partial: 'form_fields', locals: { :f => f }
-      %p
-        = submit_tag 'ulozit', class: 'btn btn-primary'
-        = link_to 'Zpet na seznam', send("#{controller_name}_path"), class: 'btn'
+      = f.actions do
+        = f.submit 'Save', class: 'btn btn-primary'
+        = link_to 'Back to list', return_path, class: 'btn'

@@ -19,21 +19,45 @@ module DatatablesCRUD
         prepend_view_path(File.dirname(__FILE__) + "/../views")
       end
 
-      @@parent_objects = []
+      @@parent_objects ||= {}
       define_method(:parent_objects) do
-        @@parent_objects || []
+        @@parent_objects[controller_name] || []
       end
 
-      define_method(:path_with_parent_objects) do |obj_name|
-        (parent_objects.map { |po| po.name.downcase } + [obj_name.downcase]).join('_')
+      define_method(:singular_path) do
+        (parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')
+      end
+
+      define_method(:index_path) do
+        send "#{(parent_objects.map { |po| po.name.downcase } + [controller_name]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }
+      end
+
+      define_method(:show_path) do
+        send "#{(parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }, params[:id]
+      end
+
+      @@return_path ||= {}
+      define_method(:return_path) do
+        if @@return_path[controller_name]
+          send(@@return_path[controller_name][:path], *@@return_path[controller_name][:objects].map { |obj| params["#{obj.name.downcase}_id"] })
+        else
+          index_path
+        end
       end
 
       helper_method :parent_objects
-      helper_method :path_with_parent_objects
+      helper_method :singular_path
+      helper_method :index_path
+      helper_method :show_path
+      helper_method :return_path
     end
 
     def parent_objects(objects)
-      @@parent_objects = objects
+      @@parent_objects[controller_name] = objects
+    end
+
+    def return_path(path, *objects)
+      @@return_path[controller_name] = { :path => path, :objects => objects}
     end
 
     def define_index
@@ -72,7 +96,7 @@ module DatatablesCRUD
         instance_variable_set "@#{object_name}", object
 
         if object.save
-          redirect_to send("#{object_name.pluralize}_path"), :notice => t("#{object_name}.notifications.created")
+          redirect_to return_path, :notice => t("#{object_name}.notifications.created")
         else
           render :new
         end
@@ -90,7 +114,7 @@ module DatatablesCRUD
         unauthorized! if cannot? :update, object
 
         if object.update_attributes params[object_name.to_sym]
-          redirect_to send("#{object_name.pluralize}_path"), :notice => t("#{object_name}.notifications.updated")
+          redirect_to return_path, :notice => t("#{object_name}.notifications.updated")
         else
           render :edit
         end
@@ -109,7 +133,7 @@ module DatatablesCRUD
           flash[:error] = t("#{object_name}.notifications.could_not_destroy")
         end
 
-        redirect_to send("#{object_name.pluralize}_path")
+        redirect_to return_path
       end
     end
   end
