@@ -32,8 +32,12 @@ module DatatablesCRUD
         send "#{(parent_objects.map { |po| po.name.downcase } + [controller_name]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }
       end
 
-      define_method(:show_path) do
-        send "#{(parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }, params[:id]
+      define_method(:show_path) do |object = nil|
+        send "#{(parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }, object.try(:id) || params[:id]
+      end
+
+      define_method(:edit_path) do |object|
+        send "edit_#{(parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }, object.id
       end
 
       @@return_path ||= {}
@@ -49,6 +53,7 @@ module DatatablesCRUD
       helper_method :singular_path
       helper_method :index_path
       helper_method :show_path
+      helper_method :edit_path
       helper_method :return_path
     end
 
