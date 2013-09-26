@@ -1,7 +1,7 @@
 module DatatablesCRUD
   module Controller
-    def crud_actions(actions)
-      actions = [:index, :show, :new, :create, :edit, :update, :destroy] if actions == :all
+    def crud_actions(*actions)
+      actions = [:index, :show, :new, :create, :edit, :update, :destroy] if actions.present? and actions.first == :all
       before_filter :load_resource, :only => [:show, :edit, :update, :destroy].select { |action| actions.include?(action) }
 
       define_method(:load_parent_objects) do
@@ -57,7 +57,7 @@ module DatatablesCRUD
       helper_method :return_path
     end
 
-    def parent_objects(objects)
+    def parent_objects(*objects)
       @@parent_objects[controller_name] = objects
     end
 
