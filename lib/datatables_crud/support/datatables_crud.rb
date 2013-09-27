@@ -88,7 +88,10 @@ module DatatablesCRUD
         unauthorized! if cannot? :create, controller_name.singularize.classify.constantize
 
         object_name = controller_name.singularize
-        instance_variable_set("@#{object_name}", object_name.classify.constantize.new)
+        object = object_name.classify.constantize.new
+        parent_object_id_field_name = "#{parent_objects.last.name.singularize.downcase}_id"
+        object.send "#{parent_object_id_field_name}=", params[parent_object_id_field_name]
+        instance_variable_set("@#{object_name}", object)
       end
     end
 
