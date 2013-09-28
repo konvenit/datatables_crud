@@ -50,7 +50,11 @@ module DatatablesCRUD
       end
 
       def column_data(object, column, value)
-        value
+        if value.is_a?(Time) or value.is_a?(Date)
+          I18n.l value
+        else
+          value
+        end
       end
 
       # column_data can be re-defined in the subclass for custom results
