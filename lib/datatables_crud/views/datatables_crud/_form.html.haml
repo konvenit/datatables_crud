@@ -2,7 +2,7 @@
   %p
     = twitter_bootstrap_form_for instance_variable_get("@#{controller_name.singularize}"), url: %w(new create).include?(params[:action]) ? index_path : show_path do |f|
       - parent_objects.each do |obj|
-        = f.hidden_field :"#{obj.name.singularize.downcase}_id"
+        = f.hidden_field :"#{obj.name.singularize.underscore}_id"
 
       = render partial: 'form_fields', locals: { :f => f }
       = f.actions do

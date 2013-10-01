@@ -6,7 +6,7 @@ module DatatablesCRUD
 
       define_method(:load_parent_objects) do
         parent_objects.each do |clazz|
-          obj_name = clazz.name.downcase
+          obj_name = clazz.name.underscore
           instance_variable_set("@#{obj_name}", clazz.find(params["#{obj_name}_id"]))
         end
       end
@@ -25,25 +25,25 @@ module DatatablesCRUD
       end
 
       define_method(:singular_path) do
-        (parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')
+        (parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).join('_')
       end
 
       define_method(:index_path) do
-        send "#{(parent_objects.map { |po| po.name.downcase } + [controller_name]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }
+        send "#{(parent_objects.map { |po| po.name.underscore } + [controller_name]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }
       end
 
       define_method(:show_path) do |object = nil|
-        send "#{(parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }, object.try(:id) || params[:id]
+        send "#{(parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }, object.try(:id) || params[:id]
       end
 
       define_method(:edit_path) do |object|
-        send "edit_#{(parent_objects.map { |po| po.name.downcase } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.downcase}_id"] }, object.id
+        send "edit_#{(parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }, object.id
       end
 
       @@return_path ||= {}
       define_method(:return_path) do
         if @@return_path[controller_name]
-          send(@@return_path[controller_name][:path], *@@return_path[controller_name][:objects].map { |obj| params["#{obj.name.downcase}_id"] })
+          send(@@return_path[controller_name][:path], *@@return_path[controller_name][:objects].map { |obj| params["#{obj.name.underscore}_id"] })
         else
           index_path
         end
@@ -81,6 +81,9 @@ module DatatablesCRUD
     end
 
     def define_show
+      define_method(:show) do
+        unauthorized! if cannot? :read, controller_name.singularize.classify.constantize
+      end
     end
 
     def define_new
@@ -89,7 +92,7 @@ module DatatablesCRUD
 
         object_name = controller_name.singularize
         object = object_name.classify.constantize.new
-        parent_object_id_field_name = "#{parent_objects.last.name.singularize.downcase}_id"
+        parent_object_id_field_name = "#{parent_objects.last.name.singularize.underscore}_id"
         object.send "#{parent_object_id_field_name}=", params[parent_object_id_field_name]
         instance_variable_set("@#{object_name}", object)
       end
