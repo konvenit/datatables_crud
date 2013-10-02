@@ -9,4 +9,4 @@
   %tbody
 
 %p.actions
-  = link_to t('.new', default: t('helpers.links.new')), send("new_#{singular_path}_path", *parent_objects.map { |o| params["#{o.name.downcase}_id"] }), class: 'btn btn-primary'
+  = render 'index_actions'
