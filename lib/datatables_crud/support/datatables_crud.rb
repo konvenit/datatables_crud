@@ -68,7 +68,7 @@ module DatatablesCRUD
     def define_index
       define_method(:index) do
         @model_class = controller_name.singularize.classify.constantize
-        unauthorized! if cannot? :read, @model_class
+        authorize! :read, @model_class
 
         respond_to do |format|
           format.html
@@ -82,25 +82,29 @@ module DatatablesCRUD
 
     def define_show
       define_method(:show) do
-        unauthorized! if cannot? :read, controller_name.singularize.classify.constantize
+        authorize! :read, instance_variable_get("@#{controller_name.singularize}")
       end
     end
 
     def define_new
       define_method(:new) do
-        unauthorized! if cannot? :create, controller_name.singularize.classify.constantize
+        authorize! :create, controller_name.singularize.classify.constantize
 
         object_name = controller_name.singularize
         object = object_name.classify.constantize.new
-        parent_object_id_field_name = "#{parent_objects.last.name.singularize.underscore}_id"
-        object.send "#{parent_object_id_field_name}=", params[parent_object_id_field_name]
+
+        if parent_objects.present?
+          parent_object_id_field_name = "#{parent_objects.last.name.singularize.underscore}_id"
+          object.send "#{parent_object_id_field_name}=", params[parent_object_id_field_name]
+        end
+
         instance_variable_set("@#{object_name}", object)
       end
     end
 
     def define_create
       define_method(:create) do
-        unauthorized! if cannot? :create, controller_name.singularize.classify.constantize
+        authorize! :create, controller_name.singularize.classify.constantize
 
         object_name = controller_name.singularize
         object = object_name.classify.constantize.new(params[object_name.to_sym])
@@ -122,7 +126,7 @@ module DatatablesCRUD
         object_name = controller_name.singularize
         object = instance_variable_get("@#{object_name}")
 
-        unauthorized! if cannot? :update, object
+        authorize! :update, object
 
         if object.update_attributes params[object_name.to_sym]
           redirect_to return_path, :notice => t("#{object_name}.notifications.updated")
@@ -136,7 +140,7 @@ module DatatablesCRUD
       define_method(:destroy) do
         object_name = controller_name.singularize
         object = instance_variable_get("@#{object_name}")
-        unauthorized! if cannot? :destroy, object
+        authorize! :destroy, object
 
         if object.destroy
           flash[:notice] = t("#{object_name}.notifications.destroyed")
