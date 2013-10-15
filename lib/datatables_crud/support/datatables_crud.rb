@@ -119,6 +119,11 @@ module DatatablesCRUD
     end
 
     def define_edit
+      define_method(:edit) do
+        object_name = controller_name.singularize
+        object = instance_variable_get("@#{object_name}")
+        authorize! :update, object
+      end
     end
 
     def define_update
