@@ -52,6 +52,8 @@ module DatatablesCRUD
       def column_data(object, column, value)
         if value.is_a?(Time) or value.is_a?(Date)
           I18n.l value
+        elsif !!value == value
+          "<input type=\"checkbox\" #{'checked' if value} onclick=\"checked = !checked\"/>".html_safe
         else
           value
         end
