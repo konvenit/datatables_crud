@@ -2,7 +2,30 @@ module DatatablesCRUD
   module Controller
     def crud_actions(*actions)
       actions = [:index, :show, :new, :create, :edit, :update, :destroy] if actions.present? and actions.first == :all
-      before_filter :load_resource, :only => [:show, :edit, :update, :destroy].select { |action| actions.include?(action) }
+
+      define_method(:load_resource) do
+        object_name = self.class.name.sub('Controller', '').underscore.singularize
+
+        begin
+          if params[:action].to_s == 'new'
+            object_name = controller_name.singularize
+            object = object_name.classify.constantize.new
+
+            if parent_objects.present?
+              parent_object_id_field_name = "#{parent_objects.last.name.singularize.underscore}_id"
+              object.send "#{parent_object_id_field_name}=", params[parent_object_id_field_name]
+            end
+          else
+            object = object_name.classify.constantize.find(params[:id])
+          end
+
+          instance_variable_set("@#{object_name}", object)
+        rescue
+          redirect_to return_path, flash: { error: t("#{object_name}.notifications.does_not_exist") }
+        end
+      end
+
+      before_filter :load_resource, :only => [:show, :new, :edit, :update, :destroy].select { |action| actions.include?(action) }
 
       define_method(:load_parent_objects) do
         parent_objects.each do |clazz|
@@ -89,16 +112,6 @@ module DatatablesCRUD
     def define_new
       define_method(:new) do
         authorize! :create, controller_name.singularize.classify.constantize
-
-        object_name = controller_name.singularize
-        object = object_name.classify.constantize.new
-
-        if parent_objects.present?
-          parent_object_id_field_name = "#{parent_objects.last.name.singularize.underscore}_id"
-          object.send "#{parent_object_id_field_name}=", params[parent_object_id_field_name]
-        end
-
-        instance_variable_set("@#{object_name}", object)
       end
     end
 
