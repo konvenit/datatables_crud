@@ -73,7 +73,7 @@ module DatatablesCRUD
       end
 
       define_method(:namespace) do
-        self.class.parent.name.downcase if self.class.parent.is_a?(Module)
+        self.class.parent.name.downcase unless self.class.parent == Object
       end
 
       helper_method :parent_objects
