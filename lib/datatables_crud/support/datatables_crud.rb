@@ -48,19 +48,19 @@ module DatatablesCRUD
       end
 
       define_method(:singular_path) do
-        (parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).join('_')
+        ([namespace] + parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).compact.join('_')
       end
 
       define_method(:index_path) do
-        send "#{(parent_objects.map { |po| po.name.underscore } + [controller_name]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }
+        send "#{(([namespace] + parent_objects.map { |po| po.name.underscore } + [controller_name]).compact).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }
       end
 
       define_method(:show_path) do |object = nil|
-        send "#{(parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }, object.try(:id) || params[:id]
+        send "#{(([namespace] + parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).compact).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }, object.try(:id) || params[:id]
       end
 
       define_method(:edit_path) do |object|
-        send "edit_#{(parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }, object.id
+        send "edit_#{(([namespace] + parent_objects.map { |po| po.name.underscore } + [controller_name.singularize]).compact).join('_')}_path", *parent_objects.map { |obj| params["#{obj.name.underscore}_id"] }, object.id
       end
 
       @@return_path ||= {}
@@ -72,12 +72,17 @@ module DatatablesCRUD
         end
       end
 
+      define_method(:namespace) do
+        self.class.parent.name.downcase if self.class.parent.is_a?(Module)
+      end
+
       helper_method :parent_objects
       helper_method :singular_path
       helper_method :index_path
       helper_method :show_path
       helper_method :edit_path
       helper_method :return_path
+      helper_method :namespace
     end
 
     def parent_objects(*objects)
