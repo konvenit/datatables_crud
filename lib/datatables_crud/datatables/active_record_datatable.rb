@@ -12,7 +12,7 @@ module DatatablesCRUD
 
     def initialize(view, options = nil, clazz = nil)
       super(view, options)
-      @clazz = clazz || self.class.name.gsub("Datatable", "").singularize.constantize
+      @clazz = clazz || self.class.name.gsub(/.*\:\:/, '').gsub("Datatable", "").singularize.constantize
     end
 
     private
