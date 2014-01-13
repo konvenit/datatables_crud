@@ -25,11 +25,15 @@ module DatatablesCRUD
         super.map { |k, v| "#{k} #{v == 'desc' ? 'desc' : 'asc'}" }.join(", ")
       end
 
+      def count_options
+        (@options || {}).reject { |k, v| k.to_s == 'limit' }
+      end
+
       def count
         if params[:sSearch].present? and search_columns.present?
-          @count ||= @clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:sSearch]}%").count(@options)
+          @count ||= @clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:sSearch]}%").count(count_options)
         else
-          @count ||= @clazz.count(@options)
+          @count ||= @clazz.count(count_options)
         end
       end
 
