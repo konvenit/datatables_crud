@@ -4,7 +4,7 @@ module DatatablesCRUD
       actions = [:index, :show, :new, :create, :edit, :update, :destroy] if actions.present? and actions.first == :all
 
       define_method(:load_resource) do
-        object_name = self.class.name.sub('Controller', '').underscore.singularize
+        object_name = self.class.name.sub('Controller', '').gsub(/.*:/, '').underscore.singularize
 
         begin
           if params[:action].to_s == 'new'
