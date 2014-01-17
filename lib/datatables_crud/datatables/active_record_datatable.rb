@@ -26,7 +26,7 @@ module DatatablesCRUD
       end
 
       def count_options
-        (@options || {}).reject { |k, v| k.to_s == 'limit' }
+        (@options || {}).reject { |k, v| %w(limit offset).include? k.to_s }
       end
 
       def count
