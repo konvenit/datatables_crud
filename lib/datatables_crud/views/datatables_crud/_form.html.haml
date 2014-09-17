@@ -5,6 +5,3 @@
         = f.hidden_field :"#{obj.name.singularize.underscore}_id"
 
       = render partial: 'form_fields', locals: { :f => f }
-      = f.actions do
-        = f.submit 'Save', class: 'btn btn-primary'
-        = link_to 'Back to list', return_path, class: 'btn'
