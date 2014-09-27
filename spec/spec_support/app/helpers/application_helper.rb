@@ -1,6 +1,6 @@
 module ApplicationHelper
   def object_action_links(object)
-    object_name = object.class.name.downcase
+    object_name = object.class.name.underscore
     [
         link_to(I18n.t('helpers.links.show'), object, :class => 'btn btn-mini'),
         link_to(I18n.t('helpers.links.edit'), send("edit_#{object_name}_path", object), :class => 'btn btn-mini btn-inverse'),
