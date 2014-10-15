@@ -44,7 +44,7 @@ module DatatablesCRUD
 
       @@parent_objects ||= {}
       define_method(:parent_objects) do
-        @@parent_objects[controller_name] || []
+        @@parent_objects[namespaced_controller_name] || []
       end
 
       define_method(:singular_path) do
@@ -65,15 +65,19 @@ module DatatablesCRUD
 
       @@return_path ||= {}
       define_method(:return_path) do
-        if @@return_path[controller_name]
-          send(@@return_path[controller_name][:path], *@@return_path[controller_name][:objects].map { |obj| params["#{obj.name.underscore}_id"] })
+        if @@return_path[namespaced_controller_name]
+          send(@@return_path[namespaced_controller_name][:path], *@@return_path[namespaced_controller_name][:objects].map { |obj| params["#{obj.name.underscore}_id"] })
         else
           index_path
         end
       end
 
       define_method(:namespace) do
-        self.class.parent.name.underscore unless self.class.parent == Object
+        self.class.namespace
+      end
+
+      define_method(:namespaced_controller_name) do
+        self.class.namespaced_controller_name
       end
 
       helper_method :parent_objects
@@ -83,14 +87,23 @@ module DatatablesCRUD
       helper_method :edit_path
       helper_method :return_path
       helper_method :namespace
+      helper_method :namespaced_controller_name
+    end
+
+    def namespace
+      self.parent.name.underscore unless self.parent == Object
+    end
+
+    def namespaced_controller_name
+      [namespace, controller_name].compact.join('::')
     end
 
     def parent_objects(*objects)
-      @@parent_objects[controller_name] = objects
+      @@parent_objects[namespaced_controller_name] = objects
     end
 
     def return_path(path, *objects)
-      @@return_path[controller_name] = { :path => path, :objects => objects}
+      @@return_path[namespaced_controller_name] = { :path => path, :objects => objects}
     end
 
     def define_index
