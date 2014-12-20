@@ -1,2 +1,2 @@
 - if controller.respond_to? :new
-  = link_to t('.new', default: t('helpers.links.new')), send("new_#{singular_path}_path", *parent_objects.map { |o| params["#{o.name.underscore}_id"] }), class: 'btn btn-primary'
+  = link_to t("#{controller_name}.new", default: t('helpers.links.new')), send("new_#{singular_path}_path", *parent_objects.map { |o| params["#{o.name.underscore}_id"] }), class: 'btn btn-primary'
