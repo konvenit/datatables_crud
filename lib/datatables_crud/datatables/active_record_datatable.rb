@@ -17,6 +17,10 @@ module DatatablesCRUD
 
     private
 
+      def prepared_clazz
+        @clazz
+      end
+
       def search_columns
         self.class.search_columns
       end
@@ -30,18 +34,22 @@ module DatatablesCRUD
       end
 
       def count
-        if params[:sSearch].present? and search_columns.present?
-          @count ||= @clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:sSearch]}%").count(count_options)
+        if params[:search].try(:[], :value).present? and search_columns.present?
+          @count ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").count(count_options)
         else
-          @count ||= @clazz.count(count_options)
+          total_count
         end
       end
 
+      def total_count
+        @total_count ||= prepared_clazz.count(count_options)
+      end
+
       def records
-        if params[:sSearch].present? and search_columns.present?
-          @records ||= @clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:sSearch]}%").all(@options)
+        if params[:search].try(:[], :value).present? and search_columns.present?
+          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").all(@options)
         else
-          @records ||= @clazz.all(@options)
+          @records ||= prepared_clazz.all(@options)
         end
       end
 

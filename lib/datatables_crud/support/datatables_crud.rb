@@ -34,6 +34,12 @@ module DatatablesCRUD
         end
       end
 
+      define_method(:authorize_parent_object) do |operation|
+        if parent_objects.present?
+          authorize! operation, instance_variable_get("@#{parent_objects.last.name.underscore}")
+        end
+      end
+
       before_filter :load_parent_objects
 
       actions.each { |action| send("define_#{action}") }
@@ -109,6 +115,7 @@ module DatatablesCRUD
     def define_index
       define_method(:index) do
         @model_class = controller_name.singularize.classify.constantize
+        authorize_parent_object :read
         authorize! :read, @model_class
 
         respond_to do |format|
@@ -129,12 +136,14 @@ module DatatablesCRUD
 
     def define_new
       define_method(:new) do
-        authorize! :create, controller_name.singularize.classify.constantize
+        authorize_parent_object :update
+        authorize! :create, controller_name.gsub(/^.*\//, '').singularize.classify.constantize
       end
     end
 
     def define_create
       define_method(:create) do
+        authorize_parent_object :update
         authorize! :create, controller_name.singularize.classify.constantize
 
         object_name = controller_name.singularize

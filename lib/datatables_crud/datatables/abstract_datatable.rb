@@ -16,18 +16,18 @@ module DatatablesCRUD
       @view = view
 
       @options = (options || {}).merge(
-          :limit => params[:iDisplayLength] || 10,
-          :offset => params[:iDisplayStart] || 0,
+          :limit => params[:length] || 10,
+          :offset => params[:start] || 0,
           :order => sort_options
       )
     end
 
     def as_json(options = {})
       {
-        sEcho: params[:sEcho].to_i,
-        iTotalRecords: count,
-        iTotalDisplayRecords: count,
-        aaData: data
+        draw: params[:draw].to_i,
+        recordsTotal: total_count,
+        recordsFiltered: count,
+        data: data
       }
     end
 
@@ -38,11 +38,11 @@ module DatatablesCRUD
       end
 
       def page
-        params[:iDisplayStart].to_i / per_page + 1
+        params[:start].to_i / per_page + 1
       end
 
       def per_page
-        params[:iDisplayLength].to_i > 0 ? params[:iDisplayLength].to_i : 10
+        params[:length].to_i > 0 ? params[:length].to_i : 10
       end
 
       def sort_columns
@@ -51,14 +51,9 @@ module DatatablesCRUD
 
       def sort_options
         {}.tap do |opts|
-          columns.size.times.each do |i|
-            iSortColSym = "iSortCol_#{i}".to_sym
-            break unless params[iSortColSym]
-
-            sSortDirSym = "sSortDir_#{i}".to_sym
-
-            sort_col = sort_columns[(params[iSortColSym].to_i rescue 0)]
-            opts[sort_col] = params[sSortDirSym]
+          params[:order].each do |k, order|
+            sort_col = sort_columns[order[:column].to_i]
+            opts[sort_col] = order[:dir]
           end
         end
       end
