@@ -50,7 +50,12 @@ module DatatablesCRUD
 
       @@parent_objects ||= {}
       define_method(:parent_objects) do
-        @@parent_objects[namespaced_controller_name] || []
+        classes = @@parent_objects[namespaced_controller_name] || []
+
+        classes.map do |clazz|
+          clazz = [clazz] unless clazz.is_a? Array
+          clazz.find { |cl| params["#{cl.name.underscore}_id"] }
+        end.compact
       end
 
       define_method(:singular_path) do
