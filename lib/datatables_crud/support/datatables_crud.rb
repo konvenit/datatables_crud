@@ -28,9 +28,12 @@ module DatatablesCRUD
       before_filter :load_resource, :only => [:show, :new, :edit, :update, :destroy].select { |action| actions.include?(action) }
 
       define_method(:load_parent_objects) do
+        object_name = controller_name.singularize.to_sym
+
         parent_objects.each do |clazz|
           obj_name = clazz.name.underscore
-          instance_variable_set("@#{obj_name}", clazz.find(params["#{obj_name}_id"]))
+          obj_id = params[object_name].try(:[], "#{obj_name}_id") || params["#{obj_name}_id"]
+          instance_variable_set("@#{obj_name}", clazz.find(obj_id))
         end
       end
 
@@ -126,7 +129,14 @@ module DatatablesCRUD
         respond_to do |format|
           format.html
           format.json do
-            @datatable = self.class.name.sub('Controller', 'Datatable').constantize.new(view_context)
+            options = if parent_objects.present?
+              parent_object_id_param = "#{parent_objects.last.name.singularize.underscore}_id"
+              { :conditions => { parent_object_id_param => params[parent_object_id_param] } }
+            else
+              {}
+            end
+
+            @datatable = self.class.name.sub('Controller', 'Datatable').constantize.new(view_context, options)
             render :json => @datatable
           end
         end
