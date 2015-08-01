@@ -1,9 +1,6 @@
 %p
-  = f.label :first_name, 'First name'
-  = f.text_field :first_name
+  = f.input :first_name
 %p
-  = f.label :lsat_name, 'Last name'
-  = f.text_field :last_name
+  = f.input :last_name
 %p
-  = f.label :date_of_birth, 'Date of birth'
-  = f.date_select :date_of_birth
+  = f.input :date_of_birth, :as => :date
