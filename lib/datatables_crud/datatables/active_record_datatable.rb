@@ -45,12 +45,22 @@ module DatatablesCRUD
         @total_count ||= prepared_clazz.count(count_options)
       end
 
+      def apply_options
+        return unless @records
+        @records = @records.limit(@options[:limit])   if @options.try(:[], :limit)
+        @records = @records.offset(@options[:offset]) if @options.try(:[], :offset)
+        @records = @records.order(@options[:order])   if @options.try(:[], :order)
+        @records
+      end
+
       def records
         if params[:search].try(:[], :value).present? and search_columns.present?
-          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").all(@options)
+          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%")
         else
-          @records ||= prepared_clazz.all(@options)
+          @records ||= prepared_clazz
         end
+
+        apply_options
       end
 
       def column_value(object, column)
