@@ -18,7 +18,7 @@ module DatatablesCRUD
     private
 
       def prepared_clazz
-        @clazz
+        @options[:conditions] ? @clazz.where(@options[:conditions]) : @clazz
       end
 
       def search_columns
