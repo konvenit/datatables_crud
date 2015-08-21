@@ -162,7 +162,7 @@ module DatatablesCRUD
         authorize! :create, controller_name.singularize.classify.constantize
 
         object_name = controller_name.singularize
-        object = object_name.classify.constantize.new(params[object_name.to_sym])
+        object = object_name.classify.constantize.new(permitted_params)
         instance_variable_set "@#{object_name}", object
 
         if object.save
@@ -188,7 +188,7 @@ module DatatablesCRUD
 
         authorize! :update, object
 
-        if object.update_attributes params[object_name.to_sym]
+        if object.update_attributes permitted_params
           redirect_to return_path, :notice => t("#{object_name}.notifications.updated")
         else
           render :edit
