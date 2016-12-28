@@ -48,7 +48,7 @@ module DatatablesCRUD
       actions.each { |action| send("define_#{action}") }
 
       if actions.present?
-        prepend_view_path(File.dirname(__FILE__) + "/../views")
+        prepend_view_path(File.dirname(__FILE__) + '/../views')
       end
 
       @@parent_objects ||= {}
@@ -166,7 +166,7 @@ module DatatablesCRUD
         instance_variable_set "@#{object_name}", object
 
         if object.save
-          redirect_to return_path, :notice => t("#{object_name}.notifications.created")
+          redirect_to return_path, :notice => t("#{object_name}.notifications.created", :default => t('common.notifications.created'))
         else
           render :new
         end
@@ -189,7 +189,7 @@ module DatatablesCRUD
         authorize! :update, object
 
         if object.update_attributes permitted_params
-          redirect_to return_path, :notice => t("#{object_name}.notifications.updated")
+          redirect_to return_path, :notice => t("#{object_name}.notifications.updated", :default => t('common.notifications.updated'))
         else
           render :edit
         end
@@ -203,9 +203,9 @@ module DatatablesCRUD
         authorize! :destroy, object
 
         if object.destroy
-          flash[:notice] = t("#{object_name}.notifications.destroyed")
+          flash[:notice] = t("#{object_name}.notifications.destroyed", :default => t('common.notifications.destroyed'))
         else
-          flash[:error] = t("#{object_name}.notifications.could_not_destroy")
+          flash[:error] = t("#{object_name}.notifications.could_not_destroy", :default => t('common.notifications.could_not_destroy'))
         end
 
         redirect_to return_path
