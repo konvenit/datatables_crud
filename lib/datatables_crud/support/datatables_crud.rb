@@ -25,7 +25,7 @@ module DatatablesCRUD
         end
       end
 
-      before_filter :load_resource, :only => [:show, :new, :edit, :update, :destroy].select { |action| actions.include?(action) }
+      before_action :load_resource, :only => [:show, :new, :edit, :update, :destroy].select { |action| actions.include?(action) }
 
       define_method(:load_parent_objects) do
         object_name = controller_name.singularize.to_sym
@@ -43,7 +43,7 @@ module DatatablesCRUD
         end
       end
 
-      before_filter :load_parent_objects
+      before_action :load_parent_objects
 
       actions.each { |action| send("define_#{action}") }
 
