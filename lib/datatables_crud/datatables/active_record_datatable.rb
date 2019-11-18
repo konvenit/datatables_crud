@@ -35,22 +35,31 @@ module DatatablesCRUD
 
       def count
         if params[:search].try(:[], :value).present? and search_columns.present?
-          @count ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").count(count_options)
+          @count ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").count
         else
           total_count
         end
       end
 
       def total_count
-        @total_count ||= prepared_clazz.count(count_options)
+        @total_count ||= prepared_clazz.count
       end
 
       def records
+        @records_exist = @records.present?
         if params[:search].try(:[], :value).present? and search_columns.present?
-          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").all(@options)
+          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%")
         else
-          @records ||= prepared_clazz.all(@options)
+          @records ||= prepared_clazz.all
         end
+
+        unless @records_exist
+          @options.each do |k, v|
+            @records = @records.send(k, v)
+          end
+        end
+
+        @records
       end
 
       def column_value(object, column)
