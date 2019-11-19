@@ -64,7 +64,8 @@ module DatatablesCRUD
 
       def apply_options
         return if @records_exist
-        
+        return unless @records
+
         if @options[:conditions].present?
           @records = @records.where(@options[:conditions])
         end
