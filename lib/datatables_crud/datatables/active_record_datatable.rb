@@ -30,19 +30,23 @@ module DatatablesCRUD
       end
 
       def count_options
-        (@options || {}).reject { |k, v| %w(limit offset).include? k.to_s }
+        (@options || {}).reject { |k, v| %w(limit offset order).include? k.to_s }
       end
 
       def count
         if params[:search].try(:[], :value).present? and search_columns.present?
-          @count ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").count
+          @count ||= count_of( prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%") )
         else
           total_count
         end
       end
 
       def total_count
-        @total_count ||= prepared_clazz.count
+        @total_count ||= count_of(prepared_clazz)
+      end
+
+      def count_of(objects)
+        objects.where(count_options[:conditions]).count
       end
 
       def records
@@ -53,13 +57,21 @@ module DatatablesCRUD
           @records ||= prepared_clazz.all
         end
 
-        unless @records_exist
-          @options.each do |k, v|
-            @records = @records.send(k, v)
-          end
-        end
+        apply_options
 
         @records
+      end
+
+      def apply_options
+        return if @records_exist
+        
+        if @options[:conditions].present?
+          @records = @records.where(@options[:conditions])
+        end
+
+        @options.reject {|k, v| k.to_s == "conditions" }.each do |k, v|
+          @records = @records.send(k, v)
+        end        
       end
 
       def column_value(object, column)
