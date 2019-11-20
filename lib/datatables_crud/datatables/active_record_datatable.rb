@@ -30,27 +30,44 @@ module DatatablesCRUD
       end
 
       def count_options
-        (@options || {}).reject { |k, v| %w(limit offset).include? k.to_s }
+        (@options || {}).reject { |k, v| %w(limit offset order).include? k.to_s }
       end
 
       def count
         if params[:search].try(:[], :value).present? and search_columns.present?
-          @count ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").count(count_options)
+          @count ||= count_of( prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%") )
         else
           total_count
         end
       end
 
       def total_count
-        @total_count ||= prepared_clazz.count(count_options)
+        @total_count ||= count_of(prepared_clazz)
+      end
+
+      def count_of(objects)
+        objects.where(count_options[:conditions]).count
       end
 
       def records
         if params[:search].try(:[], :value).present? and search_columns.present?
-          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").all(@options)
+          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%")
         else
-          @records ||= prepared_clazz.all(@options)
+          @records ||= prepared_clazz.all
         end
+
+        apply_options
+
+        @records
+      end
+
+      def apply_options
+        return unless @records
+
+        @records = @records.where(@options[:conditions]) if @options.try(:[], :conditions)
+        @records = @records.limit(@options[:limit])      if @options.try(:[], :limit)
+        @records = @records.offset(@options[:offset])    if @options.try(:[], :offset)
+        @records = @records.order(@options[:order])      if @options.try(:[], :order)     
       end
 
       def column_value(object, column)
