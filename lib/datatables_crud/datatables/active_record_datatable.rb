@@ -50,7 +50,6 @@ module DatatablesCRUD
       end
 
       def records
-        @records_exist = @records.present?
         if params[:search].try(:[], :value).present? and search_columns.present?
           @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%")
         else
@@ -63,16 +62,12 @@ module DatatablesCRUD
       end
 
       def apply_options
-        return if @records_exist
         return unless @records
 
-        if @options[:conditions].present?
-          @records = @records.where(@options[:conditions])
-        end
-
-        @options.reject {|k, v| k.to_s == "conditions" }.each do |k, v|
-          @records = @records.send(k, v)
-        end        
+        @records = @records.where(@options[:conditions]) if @options.try(:[], :conditions)
+        @records = @records.limit(@options[:limit])      if @options.try(:[], :limit)
+        @records = @records.offset(@options[:offset])    if @options.try(:[], :offset)
+        @records = @records.order(@options[:order])      if @options.try(:[], :order)     
       end
 
       def column_value(object, column)
