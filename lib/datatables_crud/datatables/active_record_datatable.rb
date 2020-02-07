@@ -35,14 +35,18 @@ module DatatablesCRUD
 
       def count
         if params[:search].try(:[], :value).present? and search_columns.present?
-          @count ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%").count(count_options)
+          @count ||= begin
+            c = prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%")
+            c = c.where(count_options[:conditions]) if count_options[:conditions].present?
+            c.count
+          end
         else
           total_count
         end
       end
 
       def total_count
-        @total_count ||= prepared_clazz.count(count_options)
+        @total_count ||= count_options[:conditions].present? ? prepared_clazz.where(count_options[:conditions]).count : prepared_clazz.count
       end
 
       def apply_options
