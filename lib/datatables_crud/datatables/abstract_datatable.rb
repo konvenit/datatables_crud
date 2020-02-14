@@ -51,7 +51,7 @@ module DatatablesCRUD
 
       def sort_options
         {}.tap do |opts|
-          params[:order].each do |k, order|
+          (params[:order] || []).each do |k, order|
             sort_col = sort_columns[order[:column].to_i]
             opts[sort_col] = order[:dir]
           end
