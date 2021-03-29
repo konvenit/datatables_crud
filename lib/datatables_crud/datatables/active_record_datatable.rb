@@ -12,10 +12,14 @@ module DatatablesCRUD
 
     def initialize(view, options = nil, clazz = nil)
       super(view, options)
-      @clazz = clazz || self.class.name.gsub("Datatable", "").singularize.constantize
+      @clazz = clazz || self.class.name.gsub(/.*\:\:/, '').gsub("Datatable", "").singularize.constantize
     end
 
     private
+
+      def prepared_clazz
+        @options[:conditions] ? @clazz.where(@options[:conditions]) : @clazz
+      end
 
       def search_columns
         self.class.search_columns
@@ -25,20 +29,42 @@ module DatatablesCRUD
         super.map { |k, v| "#{k} #{v == 'desc' ? 'desc' : 'asc'}" }.join(", ")
       end
 
+      def count_options
+        (@options || {}).reject { |k, v| %w(limit offset).include? k.to_s }
+      end
+
       def count
-        if params[:sSearch].present? and search_columns.present?
-          @count ||= @clazz.where(@options[:conditions] || {}).where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:sSearch]}%").count
+        if params[:search].try(:[], :value).present? and search_columns.present?
+          @count ||= begin
+            c = prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%")
+            c = c.where(count_options[:conditions]) if count_options[:conditions].present?
+            c.count
+          end
         else
-          @count ||= @clazz.where(@options[:conditions] || {}).count
+          total_count
         end
       end
 
+      def total_count
+        @total_count ||= count_options[:conditions].present? ? prepared_clazz.where(count_options[:conditions]).count : prepared_clazz.count
+      end
+
+      def apply_options
+        return unless @records
+        @records = @records.limit(@options[:limit])   if @options.try(:[], :limit)
+        @records = @records.offset(@options[:offset]) if @options.try(:[], :offset)
+        @records = @records.order(@options[:order])   if @options.try(:[], :order)
+        @records
+      end
+
       def records
-        if params[:sSearch].present? and search_columns.present?
-          @records ||= @clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:sSearch]}%").all(@options)
+        if params[:search].try(:[], :value).present? and search_columns.present?
+          @records ||= prepared_clazz.where(search_columns.map { |v| "#{v} like :search" }.join(' OR '), search: "%#{params[:search][:value]}%")
         else
-          @records ||= @clazz.all(@options)
+          @records ||= prepared_clazz
         end
+
+        apply_options
       end
 
       def column_value(object, column)
@@ -50,7 +76,13 @@ module DatatablesCRUD
       end
 
       def column_data(object, column, value)
-        value
+        if value.is_a?(Time) or value.is_a?(Date)
+          I18n.l value
+        elsif !!value == value
+          "<input type=\"checkbox\" #{'checked' if value} onclick=\"checked = !checked\"/>".html_safe
+        else
+          value
+        end
       end
 
       # column_data can be re-defined in the subclass for custom results

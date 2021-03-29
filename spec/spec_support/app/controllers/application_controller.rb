@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
 
   private
   def load_resource
-    object_name = self.class.name.sub('Controller', '').downcase.singularize
+    object_name = self.class.name.sub('Controller', '').underscore.singularize
 
     begin
       instance_variable_set "@#{object_name}", object_name.classify.constantize.find(params[:id])
